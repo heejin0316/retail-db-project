@@ -52,7 +52,7 @@ def create_database(schema_path: Path, db_path: Path, reset: bool=False) -> None
     
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create SQLite database from schema.sql")
-    parser.add_argument("--schema", default="schema.sql", help="Path to schema.sql")
+    parser.add_argument("--schema", default="db/schema.sql", help="Path to schema.sql")
     parser.add_argument("--db", default="market.db", help="Output SQLite DB file")
     parser.add_argument("--reset", action="store_true", help="Delete existing DB file before creating")
     

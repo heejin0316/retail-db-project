@@ -35,7 +35,7 @@ CREATE TABLE store (
     store_id INTEGER PRIMARY KEY,
     retailer_id INTEGER NOT NULL,
     store_name TEXT NOT NULL,
-    address TEXT NOT NULL,
+    address TEXT,
     business_hours TEXT,
     FOREIGN KEY (retailer_id) REFERENCES retailer(retailer_id)
 );
@@ -49,8 +49,6 @@ CREATE TABLE product (
     stock_quantity INTEGER NOT NULL CHECK (stock_quantity >= 0),
     sale_price INTEGER NOT NULL CHECK (sale_price >= 0),
     reorder_threshold INTEGER NOT NULL CHECK (reorder_threshold >= 0),
-    specification TEXT,
-    package_type TEXT,
     barcode_number TEXT NOT NULL UNIQUE,
     FOREIGN KEY (brand_id) REFERENCES brand(brand_id),
     FOREIGN KEY (store_id) REFERENCES store(store_id),

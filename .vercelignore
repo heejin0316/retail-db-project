@@ -1,0 +1,8 @@
+*.db
+*.db-journal
+*.pdf
+__pycache__/
+.git/
+.env
+.env.*
+!.env.example

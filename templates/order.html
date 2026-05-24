@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}고객 주문 등록{% endblock %}
+
+{% block content %}
+<h2 class="page-title">고객 주문 등록</h2>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if result and result.success %}
+<div class="alert alert-success">
+  <strong>주문이 완료되었습니다.</strong><br>
+  고객: {{ result.customer_name }} &nbsp;|&nbsp;
+  제품: {{ result.product_name }} &nbsp;|&nbsp;
+  수량: {{ result.quantity }}개 &nbsp;|&nbsp;
+  단가: {{ "{:,}".format(result.unit_price) }}원 &nbsp;|&nbsp;
+  합계: <strong>{{ "{:,}".format(result.total) }}원</strong>
+</div>
+{% endif %}
+
+<!-- 주문 입력 폼 -->
+<div class="card">
+  <h2>주문 정보 입력</h2>
+  <form method="POST" action="{{ url_for('order') }}">
+    <div class="form-row">
+      <label for="customer_id">고객 ID</label>
+      <input type="number" id="customer_id" name="customer_id" min="1" placeholder="고객 ID 입력" required>
+    </div>
+    <div class="form-row">
+      <label for="product_id">제품 ID</label>
+      <input type="number" id="product_id" name="product_id" min="1" placeholder="제품 ID 입력" required>
+    </div>
+    <div class="form-row">
+      <label for="quantity">수량</label>
+      <input type="number" id="quantity" name="quantity" min="1" placeholder="1 이상" required>
+    </div>
+    <div class="form-row">
+      <label></label>
+      <button type="submit" class="btn btn-primary">주문 등록</button>
+    </div>
+  </form>
+</div>
+
+<!-- 고객 목록 참조 -->
+<div class="card">
+  <h2>고객 목록 (참조용)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>고객 ID</th>
+          <th>이름</th>
+          <th>전화번호</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+        <tr>
+          <td>{{ c.customer_id }}</td>
+          <td>{{ c.customer_name }}</td>
+          <td>{{ c.phone_number or '-' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align:center; color:#999;">고객 데이터 없음</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 제품 목록 참조 -->
+<div class="card">
+  <h2>제품 목록 (참조용)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>제품 ID</th>
+          <th>제품명</th>
+          <th>매장명</th>
+          <th>재고량</th>
+          <th>판매가격</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.product_id }}</td>
+          <td>{{ p.product_name }}</td>
+          <td>{{ p.store_name }}</td>
+          <td>{{ p.stock_quantity }}</td>
+          <td>{{ "{:,}".format(p.sale_price) }}원</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center; color:#999;">제품 데이터 없음</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Retail DB 관리 시스템{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --c-primary:      #00462A;
+      --c-primary-dark: #002d1a;
+      --c-primary-mid:  #00462A;
+      --c-primary-light:#005c36;
+      --c-primary-pale: #f0f7f3;
+      --c-primary-tint: #e0f0e8;
+      --c-accent:       #2ecc71;
+      --c-border:       #c8ddd3;
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #222; background: #f2f6f4; min-height: 100vh; }
+
+    header { background: var(--c-primary-dark); color: #fff; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; }
+    header .header-left h1 { font-size: 19px; font-weight: 700; }
+    header .header-left .subtitle { font-size: 12px; color: #8fbb9f; margin-top: 2px; }
+    header .team-badge { display: inline-block; background: var(--c-primary-light); color: #d8f0e4; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid #3a9960; }
+
+    nav { background: var(--c-primary-mid); padding: 0 28px; display: flex; gap: 2px; flex-wrap: wrap; }
+    nav a { display: block; padding: 10px 15px; color: #a8d4b8; text-decoration: none; font-size: 13px; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s, background .15s; }
+    nav a:hover { color: #fff; background: rgba(255,255,255,.07); border-bottom-color: var(--c-accent); }
+    nav a.active { color: #fff; font-weight: 600; border-bottom-color: var(--c-accent); }
+
+    main { max-width: 1120px; margin: 26px auto; padding: 0 22px; }
+
+    .page-title { font-size: 20px; font-weight: 700; color: var(--c-primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--c-primary); }
+
+    .card { background: #fff; border: 1px solid var(--c-border); border-radius: 5px; padding: 20px 26px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,70,42,.06); }
+    .card h2 { font-size: 15px; font-weight: 600; color: var(--c-primary); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #e0ece6; }
+
+    .form-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .form-row label { min-width: 100px; font-weight: 500; color: #444; }
+    .form-row input, .form-row select { padding: 7px 10px; border: 1px solid #b5cec1; border-radius: 3px; font-size: 13px; min-width: 180px; }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 2px rgba(0,70,42,.12); }
+
+    .btn { padding: 8px 18px; border: none; border-radius: 3px; font-size: 13px; cursor: pointer; font-weight: 500; transition: background .15s; }
+    .btn-primary   { background: var(--c-primary); color: #fff; }
+    .btn-primary:hover { background: var(--c-primary-light); }
+    .btn-success   { background: #1a8a4a; color: #fff; }
+    .btn-success:hover { background: #157a40; }
+    .btn-danger    { background: #c0392b; color: #fff; }
+    .btn-danger:hover  { background: #a93226; }
+    .btn-secondary { background: #6c8c7a; color: #fff; }
+    .btn-secondary:hover { background: #5a7a68; }
+
+    .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 13px; }
+    .alert-success { background: #d6eedf; border: 1px solid #aadcbb; color: #0d4a25; }
+    .alert-error   { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .alert-info    { background: var(--c-primary-pale); border: 1px solid #b8d9c8; color: #004422; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table th { background: var(--c-primary); color: #fff; font-weight: 600; padding: 9px 13px; text-align: left; border: 1px solid var(--c-primary-light); white-space: nowrap; }
+    table td { padding: 8px 13px; border: 1px solid #daeae2; vertical-align: middle; }
+    table tr:nth-child(even) td { background: #f5faf7; }
+    table tr:hover td { background: var(--c-primary-tint); }
+
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-requested { background: #fff3cd; color: #856404; }
+    .badge-approved  { background: #d6eedf; color: #0d4a25; }
+    .badge-shipped   { background: #cce5ff; color: #004085; }
+    .badge-completed { background: #d6d8d9; color: #383d41; }
+    .badge-cancelled { background: #f8d7da; color: #721c24; }
+    .badge-reorder   { background: #f8d7da; color: #721c24; }
+    .badge-ok        { background: #d6eedf; color: #0d4a25; }
+
+    footer { text-align: center; padding: 22px; margin-top: 20px; border-top: 1px solid #d0e4da; }
+    footer .footer-team { font-size: 14px; font-weight: 700; color: var(--c-primary); letter-spacing: .4px; }
+    footer .footer-sub  { font-size: 11px; color: #8aab98; margin-top: 4px; }
+
+    pre { background: var(--c-primary-pale); border: 1px solid #c0dace; border-radius: 3px; padding: 14px 16px; font-size: 12px; white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+    code { background: var(--c-primary-pale); color: var(--c-primary); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Retail DB 관리 시스템</h1>
+    <div class="subtitle">Database Project &mdash; SQLite + Flask</div>
+  </div>
+  <div class="header-right">
+    <span class="team-badge">Team 널값없는 사이</span>
+  </div>
+</header>
+
+<nav>
+  <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>홈</a>
+  <a href="{{ url_for('order') }}" {% if request.endpoint == 'order' %}class="active"{% endif %}>고객 주문 등록</a>
+  <a href="{{ url_for('inventory') }}" {% if request.endpoint == 'inventory' %}class="active"{% endif %}>매장 재고 조회</a>
+  <a href="{{ url_for('reorder') }}" {% if request.endpoint == 'reorder' %}class="active"{% endif %}>자동 재주문 발주</a>
+  <a href="{{ url_for('purchase_orders') }}" {% if request.endpoint == 'purchase_orders' %}class="active"{% endif %}>공급업체 발주 처리</a>
+  <a href="{{ url_for('analysis') }}" {% if request.endpoint == 'analysis' %}class="active"{% endif %}>Sample Query</a>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="footer-team">Team 널값없는 사이</div>
+  <div class="footer-sub">Retail DB Management System &mdash; Database Course Project</div>
+</footer>
+
+</body>
+</html>

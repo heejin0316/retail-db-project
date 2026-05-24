@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}공급업체 발주 처리{% endblock %}
+
+{% block content %}
+<h2 class="page-title">공급업체 발주 처리</h2>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if result_msg %}
+<div class="alert alert-success">{{ result_msg }}</div>
+{% endif %}
+
+<!-- 상태 변경 폼 -->
+<div class="card">
+  <h2>발주 상태 변경</h2>
+  <p style="color:#555; font-size:13px; margin-bottom:14px; line-height:1.7;">
+    허용 상태 변경: REQUESTED → APPROVED / CANCELLED &nbsp;|&nbsp;
+    APPROVED → SHIPPED / CANCELLED &nbsp;|&nbsp;
+    SHIPPED → COMPLETED
+  </p>
+  <form method="POST" action="{{ url_for('purchase_orders') }}">
+    <div class="form-row">
+      <label for="purchase_order_id">발주 ID</label>
+      <input type="number" id="purchase_order_id" name="purchase_order_id" min="1" placeholder="발주 ID 입력" required>
+    </div>
+    <div class="form-row">
+      <label for="new_status">변경할 상태</label>
+      <select name="new_status" id="new_status" required>
+        <option value="">-- 상태 선택 --</option>
+        <option value="APPROVED">APPROVED</option>
+        <option value="SHIPPED">SHIPPED</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="CANCELLED">CANCELLED</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label></label>
+      <button type="submit" class="btn btn-primary">상태 변경 적용</button>
+    </div>
+  </form>
+</div>
+
+<!-- 전체 발주 목록 -->
+<div class="card">
+  <h2>
+    전체 발주 목록
+    <span style="font-size:12px; color:#888; font-weight:400;">({{ all_orders | length }}건)</span>
+  </h2>
+  {% if all_orders %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>발주 ID</th>
+          <th>제품명</th>
+          <th>공급업체</th>
+          <th>매장명</th>
+          <th>발주일시</th>
+          <th>상태</th>
+          <th>발주 수량</th>
+          <th>처리</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for po in all_orders %}
+        <tr>
+          <td>{{ po.purchase_order_id }}</td>
+          <td>{{ po.product_name }}</td>
+          <td>{{ po.supplier_name }}</td>
+          <td>{{ po.store_name }}</td>
+          <td>{{ po.order_datetime }}</td>
+          <td>
+            {% set s = po.status %}
+            {% if s == 'REQUESTED' %}
+              <span class="badge badge-requested">REQUESTED</span>
+            {% elif s == 'APPROVED' %}
+              <span class="badge badge-approved">APPROVED</span>
+            {% elif s == 'SHIPPED' %}
+              <span class="badge badge-shipped">SHIPPED</span>
+            {% elif s == 'COMPLETED' %}
+              <span class="badge badge-completed">COMPLETED</span>
+            {% elif s == 'CANCELLED' %}
+              <span class="badge badge-cancelled">CANCELLED</span>
+            {% else %}
+              {{ s }}
+            {% endif %}
+          </td>
+          <td>{{ po.order_quantity }}</td>
+          <td>
+            {% set next_statuses = allowed_transitions.get(po.status, []) %}
+            {% if next_statuses %}
+              <form method="POST" action="{{ url_for('purchase_orders') }}" style="display:flex; gap:4px; flex-wrap:wrap;">
+                <input type="hidden" name="purchase_order_id" value="{{ po.purchase_order_id }}">
+                {% for ns in next_statuses %}
+                  <button type="submit" name="new_status" value="{{ ns }}"
+                    class="btn {% if ns == 'CANCELLED' %}btn-danger{% elif ns == 'COMPLETED' %}btn-success{% else %}btn-primary{% endif %}"
+                    style="padding:4px 10px; font-size:11px;">
+                    → {{ ns }}
+                  </button>
+                {% endfor %}
+              </form>
+            {% else %}
+              <span style="color:#aaa; font-size:12px;">변경 불가</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info">발주 데이터가 없습니다.</div>
+  {% endif %}
+</div>
+{% endblock %}

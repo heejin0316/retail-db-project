@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}자동 재주문 발주 생성{% endblock %}
+
+{% block content %}
+<h2 class="page-title">자동 재주문 발주 생성</h2>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if message %}
+<div class="alert alert-info">{{ message }}</div>
+{% endif %}
+
+{% if created_rows %}
+<div class="alert alert-success">
+  <strong>발주 {{ created_rows | length }}건이 생성되었습니다.</strong>
+</div>
+{% endif %}
+
+<!-- 발주 생성 버튼 -->
+<div class="card">
+  <h2>자동 재주문 발주 생성</h2>
+  <p style="color:#555; font-size:13px; margin-bottom:14px; line-height:1.7;">
+    아래 조건을 만족하는 제품에 대해 발주를 자동 생성합니다.<br>
+    &bull; 재고량 &le; 재주문 기준 (reorder_threshold)<br>
+    &bull; 이미 REQUESTED 또는 APPROVED 상태 발주가 있는 제품은 제외<br>
+    &bull; 발주 수량: max(재주문기준 &times; 3, 10)
+  </p>
+  <form method="POST" action="{{ url_for('reorder') }}">
+    <button type="submit" class="btn btn-success">자동 재주문 발주 생성 실행</button>
+  </form>
+</div>
+
+<!-- 생성된 발주 목록 -->
+{% if created_rows %}
+<div class="card">
+  <h2>생성된 발주 목록</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>발주 ID</th>
+          <th>제품 ID</th>
+          <th>제품명</th>
+          <th>현재 재고</th>
+          <th>재주문 기준</th>
+          <th>공급업체 ID</th>
+          <th>발주 수량</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in created_rows %}
+        <tr>
+          <td>{{ row.purchase_order_id }}</td>
+          <td>{{ row.product_id }}</td>
+          <td>{{ row.product_name }}</td>
+          <td>{{ row.stock_quantity }}</td>
+          <td>{{ row.reorder_threshold }}</td>
+          <td>{{ row.supplier_id }}</td>
+          <td>{{ row.order_quantity }}</td>
+          <td><span class="badge badge-requested">REQUESTED</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

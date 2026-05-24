@@ -7,6 +7,99 @@ BASE_DIR = Path(__file__).resolve().parent
 LOCAL_DB_PATH = BASE_DIR / os.environ.get("LOCAL_DB_PATH", "market.db")
 
 
+class CompatRow:
+    def __init__(self, columns, values):
+        self._columns = list(columns)
+        self._values = list(values)
+        self._by_name = dict(zip(self._columns, self._values))
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._values[key]
+        return self._by_name[key]
+
+    def __getattr__(self, key):
+        try:
+            return self._by_name[key]
+        except KeyError as exc:
+            raise AttributeError(key) from exc
+
+    def __iter__(self):
+        return iter(self._values)
+
+    def __len__(self):
+        return len(self._values)
+
+    def keys(self):
+        return self._columns
+
+
+class CompatCursor:
+    def __init__(self, cursor):
+        self._cursor = cursor
+        self.description = getattr(cursor, "description", None)
+        self._columns = self._extract_columns()
+
+    def _extract_columns(self):
+        if not self.description:
+            return []
+        columns = []
+        for item in self.description:
+            columns.append(item[0] if isinstance(item, (tuple, list)) else item)
+        return columns
+
+    def _wrap_row(self, row):
+        if row is None or not self._columns:
+            return row
+        if isinstance(row, CompatRow):
+            return row
+        if isinstance(row, dict):
+            return CompatRow(self._columns, [row[column] for column in self._columns])
+        return CompatRow(self._columns, row)
+
+    def fetchone(self):
+        return self._wrap_row(self._cursor.fetchone())
+
+    def fetchall(self):
+        return [self._wrap_row(row) for row in self._cursor.fetchall()]
+
+    def __iter__(self):
+        for row in self._cursor:
+            yield self._wrap_row(row)
+
+    def __getattr__(self, key):
+        return getattr(self._cursor, key)
+
+
+class CompatConnection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, *args, **kwargs):
+        return CompatCursor(self._conn.execute(*args, **kwargs))
+
+    def executemany(self, *args, **kwargs):
+        return self._conn.executemany(*args, **kwargs)
+
+    def commit(self):
+        return self._conn.commit()
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def close(self):
+        return self._conn.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        self.close()
+
+    def __getattr__(self, key):
+        return getattr(self._conn, key)
+
+
 def using_remote_database():
     return bool(os.environ.get("TURSO_DATABASE_URL"))
 
@@ -31,6 +124,7 @@ def get_connection(create_local=False):
             database=os.environ["TURSO_DATABASE_URL"],
             auth_token=os.environ.get("TURSO_AUTH_TOKEN"),
         )
+        conn = CompatConnection(conn)
     else:
         if not LOCAL_DB_PATH.exists() and not create_local:
             raise FileNotFoundError(
